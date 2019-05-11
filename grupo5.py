@@ -56,7 +56,7 @@ def clasificar_gramatica(cadena):
     for key in diccionarioFinal:
         print (key,":",diccionarioFinal[key])
         diccionarioFinal[key]=""
-
+        #Borra porque si se ejecutan varias pruebas el diccionarioFinal no vuelve a vacio.
     #print(diccionarioFinal)
 
     #Aca en no hay que retornar la lista, tengo que retornar el diccionario.
@@ -104,8 +104,8 @@ def verificar_G3(cadena):
     #devolver true o false dependiendo de lo que da y ademas si da error porque Asique devolver lista.
     lista=separarTerminales(cadena)
     noTerminales=lista[0].split()
-    longitudnoTerminales = len(noTerminales)
-    if longitudnoTerminales > 1 :
+    #longitudnoTerminales = len(noTerminales)
+    if len(noTerminales) > 1 :
         return False
     if  noTerminales[0].isupper(): #ver que el unico no terminal comience en mayuscula
         terminales= lista[1].split()
@@ -125,8 +125,8 @@ def verificar_G3(cadena):
 def verificar_G2(cadena):
     lista = separarTerminales(cadena)
     noTerminales = lista[0].split()
-    longitudnoTerminales = len(noTerminales)
-    if longitudnoTerminales > 1:
+    #longitudnoTerminales = len(noTerminales)
+    if len(noTerminales) > 1:
         return False
     if (noTerminales[0])[0].isupper():
         return  True
@@ -196,6 +196,7 @@ a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
 b= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
 c= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
 d= clasificar_gramatica("A n v:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
+e= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 
 #EN G0 va a mostrar el error de lambda primero, si no hay error con lambda muesta la cadena que da error.
 #Consultar.
