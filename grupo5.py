@@ -61,15 +61,11 @@ def clasificar_gramatica(cadena):
 
     #Aca en no hay que retornar la lista, tengo que retornar el diccionario.
     #DICCIONARIOOOOOOOOOOOOOOOO
-
-
 diccionarioFinal={
     3:[],
     2:[],
     1:[],
     0:[]}
-
-
 diccionarioErrores={
     3:"No pertenece a G3, no corresponde a ninguna de las formas: NT → Nt, Nt→t, Nt→ Nt t, Nt→ t Nt, NT→ lambda",
     2:"No pertenece a G2, en la parte izquierda solo debe existir un no terminal",
@@ -99,7 +95,6 @@ def separarTerminales(cadena):
     list.append(terminales)
     return list
     #Retorna lista el primer elemento son los no terminales, el segundo los terminales.
-
 def verificar_G3(cadena):
     #devolver true o false dependiendo de lo que da y ademas si da error porque Asique devolver lista.
     lista=separarTerminales(cadena)
@@ -132,7 +127,6 @@ def verificar_G2(cadena):
         return  True
     else:
         return False
-
 def verificar_G1 (cadena,bool,cadenaInicial):
     if bool:
         verificar=verificarLambdaEnDistinguido(cadenaInicial)
@@ -148,7 +142,6 @@ def verificar_G1 (cadena,bool,cadenaInicial):
         return [False,""]
     else:
         return [True]
-
 def verificarLambdaEnDistinguido(cadenaDefinicion):
     #Primero verifico que haya lambda
     if 'lambda' in cadenaDefinicion:
@@ -192,44 +185,102 @@ def verificarLambdaEnDistinguido(cadenaDefinicion):
 #prueba=clasificar_gramatica("S:a B\nS:c\nC:c A\nB:b C\nB:b\nA:a A\nA:a") #G3
 
 
-a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
-b= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
-c= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
+#a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
+#b= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
+#c= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
 d= clasificar_gramatica("A n v:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
 e= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 
-#EN G0 va a mostrar el error de lambda primero, si no hay error con lambda muesta la cadena que da error.
+#EN G1 va a mostrar el error de lambda primero, si no hay error con lambda muesta la cadena que da error.
 #Consultar.
 
-'''
-REGULARES (G3)
-S ➜a
-S ➜Aa (izquierda)
-S ➜Aa (derecha)
-S ➜λ
-Son regulares aquellas que tengan estas formas.
-Formas:
-No terminal
-No terminal, terminal
-Terminal, no terminal 
-λ
-S ➜bc no cumple las formas
+class AutomataPila:
 
-INDEPENDIENTE CONTEXTO (G2)
-A la izquierda solo No terminales, de la derecha cualquier combinación de terminales y no terminales
-S ➜ a
-S ➜Aa
-S ➜Aa
-S ➜λ
-S ➜abB
+    def __init__(self, estados, estados_aceptacion):
 
-SENSIBLES AL CONTEXTO (G1)
-Del lado izquierdo puedo tener mas cosas que solo un anterior, del lado derecho terminales y no terminales en cualquier combinación, 
-la cantidad del lado izquierdo no puede ser mayor a lo que tengo del lado derecho ( aSB ➜ C)
-puede tener lambda pero solo como no terminal del axioma y el axioma no tiene que ser recursivo
+        self.estados= estados
+        self.estado_actual = None
+        self.cadena_restante = ''
+        self.lkAHYTope = []
+        self.TransicionesEstadoActual = []
+        self.pila=[]
+        self.estadosAceptacion=estados_aceptacion
+    def validar_cadena(self, cadena):
+        self.cadena_restante=list(cadena)
+        key= list(self.estados.keys())
 
-NO REINSTRINGIDAS (G0)
-Permite todo. 
-'''
+        while len(self.cadena_restante) >0 :
+            lookAHead=self.cadena_restante[0]
+            if self.estado_actual is None:
+                self.pila.append("Z0")
+                self.estado_actual=key[0]
 
+            lookAHeadYTope=[]
+            s=lookAHead
+            p=self.pila.pop()
+            lookAHeadYTope.append(s)
+            lookAHeadYTope.append(p)
+            self.lkAHYTope=lookAHeadYTope
+            self.TransicionesEstadoActual= self.estados.get(self.estado_actual)
+            aceptado= AutomataPila.validar_Caracter(self)
 
+            if aceptado is True:
+                self.cadena_restante.pop(0)
+            else:
+                return False
+
+        if len(self.cadena_restante) == 0 and self.estado_actual in self.estadosAceptacion:
+            return True
+        else:
+            return False
+
+    def validar_Caracter(self):
+        for i in self.TransicionesEstadoActual:
+            if self.lkAHYTope[0] in i[0]:
+                if self.lkAHYTope[1] in i[1]:
+                    elementosAApilar = i[2]
+                    if elementosAApilar[0] != '':
+                        listaReverse=[]
+                        listaReverse=elementosAApilar[:]
+                        listaReverse.reverse()
+                        for x in listaReverse:
+                          self.pila.append(x)
+                    self.estado_actual = i[3]
+                    return True
+        return False
+
+    pass
+
+#estadosPrueba= {'a': [('(', 'Z0', ['(','Z0'], 'a'),
+#                ('(', '(', ['(', '('], 'a'),
+#                (')', '(', [''], 'b')],
+#                'b': [(')', '(', [''], 'b'),
+#                ('$', 'Z0', ['Z0'], 'b')]}
+
+#estadosAceptacion=['b']
+
+#estadosPrueba= {
+ #   1: [('(', 'Z0', ['(','Z0'], 1),
+  #      ('(', '(', ['(', '('], 1),
+   #     (')', '(', [''], 2)],
+    #2: [(')', '(', [''], 2),
+     #   ('(','Z0',['(','Z0'],2),
+      #  ('(','(',['(','('],2),
+       # ('$', 'Z0', ['Z0'], 2)
+        # ]
+#}
+#estadosAceptacion=[2]
+
+estadosPrueba= {
+    1: [('a', 'Z0', ['a','a','a','Z0'], 1),
+        ('a', 'a', ['a', 'a','a'], 1),
+        ('b', 'a', ['a'], 2),
+        ('b','Z0',['a','Z0'],2)],
+    2: [('c', 'a', [''], 2),
+        ('$', 'Z0', ['Z0'], 2)
+       ]
+}
+estadosAceptacion=[2]
+
+prueba= AutomataPila(estadosPrueba,estadosAceptacion).validar_cadena('bc$')
+print(prueba)
