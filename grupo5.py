@@ -4,6 +4,7 @@ def clasificar_gramatica(cadena):
     verificarQueEs = 3
     cadenaError=''
     errores=[]
+    indiceError=''
     for x in definicion:
         #aca hay que tomar la primera defincion de la lista asi por cada continue que haga
         if verificarQueEs== 3:
@@ -15,18 +16,20 @@ def clasificar_gramatica(cadena):
                 verificar=verificar_G2(x)
                 if verificar:
                     verificarQueEs=2
+                    indiceError=definicion.index(x)
                     continue
                 else:
                     verificar=verificar_G1(x,True,cadena)
                     if verificar[0]:
                         verificarQueEs=1
+                        indiceError = definicion.index(x)
                         continue
                     else:
                         verificarQueEs=0
                         if  verificar[1]:
                             cadenaError=verificar[1]
-                        #PONER CADENA ERROR
-                        break
+                            indiceError = definicion.index(x)
+                            break
                 #Si no es g3, ver que la cadena sea g2 si no es g2 g1 si no es g1 es g0 cortar la iteracion.
         if verificarQueEs== 2:
             verificar=verificar_G2(x)
@@ -37,10 +40,12 @@ def clasificar_gramatica(cadena):
                 verificar=verificar_G1(x,True,cadena)
                 if verificar[0]:
                     verificarQueEs=1
+                    indiceError=definicion.index(x)
                     continue
                 else:
                     verificarQueEs=0
                     cadenaError=verificar[1]
+                    indiceError=definicion.index(x)
                     break
         if verificarQueEs==1:
             verificar= verificar_G1(x,False,"")
@@ -50,11 +55,12 @@ def clasificar_gramatica(cadena):
                 cadenaError=x
                 verificarQueEs=0
         if verificarQueEs==0:
+            indiceError = definicion.index(x)
             break
 
     if cadenaError is not '':
         noEs=verificarQueEs+1
-        listaErrores=guardarErrores(cadena,noEs)
+        listaErrores=guardarErrores(cadena,noEs,indiceError)
         for x in listaErrores:
             v= (x[0], diccionarioErrores[x[1]])
             diccionarioFinal[noEs].append(v)
@@ -182,14 +188,19 @@ def verificarLambdaEnDistinguido(cadenaDefinicion):
         return [True]
         #Ver si distinguido es recursivo
         #ver si distinguido define lambda ej: S → lambda
-def guardarErrores(cadena,error):
+def guardarErrores(cadena,error,indiceError):
     definicion = cadena.splitlines()
     # Definicion es una lista con cada una de las definiciones separadas
     verificarQueEs = error
     cadenaError = ''
     errores = []
     paso=1
-    for x in definicion:
+    tamañoCadena= len(definicion)-1
+    i=indiceError
+    #usa while, porque va desde i que es el index del error donde se encontro
+    while i <= tamañoCadena:
+    #for x in definicion:
+        x=definicion[i]
         if verificarQueEs== 3:
             verificar = verificar_G3(x)
             codigo=4
@@ -201,6 +212,7 @@ def guardarErrores(cadena,error):
                 verificar= verificar_G1(x,True,cadena)
                 codigo= verificar[2]
                 paso=0
+                i=i-1
             else:
                 verificar= verificar_G1(x,False,cadena)
                 codigo=2
@@ -212,14 +224,17 @@ def guardarErrores(cadena,error):
         if verificar is False:
             listar=(x,codigo)
             errores.append(listar)
+        i=i+1
     return errores
 
 #cadena="A:b A\nA:a\nA:A B c\nA:lambda\nB:b"
 #prueba= verificarLambdaEnDistinguido(cadena)
 #a=prueba
-#pruebaG3= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
-#pruebaG2= clasificar_gramatica("A:b A\nA:a B a\nA:A B c\nA:lambda\nB:b") #G2
-#pruebaG1= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
+pruebaG3= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
+pruebaG2= clasificar_gramatica("A:b A\nA:a B a\nA:A B c\nA:lambda\nB:b") #G2
+pruebaG1= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
+pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA a B C:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
+
 ##prueba= clasificar_gramatica("A n:b a\nA:a\nA:B c\nB:b\nA:lambda") #G1 porque tiene lambda y A no es recursiva
 #prueba= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 #prueba= clasificar_gramatica("S:AB palabra\nAB palabra:A palabra \nBC:a B\nC:D")
@@ -228,7 +243,6 @@ def guardarErrores(cadena,error):
 #prueba=clasificar_gramatica("S:a B\nS:c\nC:c A\nB:b C\nB:b\nA:a A\nA:a") #G3
 prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b c:c d") #Tiene lamba no lo define el distinguindo, hay mas cosas a izq que derecha
 
-pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA a B C:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
 
 #a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
 #b= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
