@@ -3,6 +3,7 @@ def clasificar_gramatica(cadena):
     #Definicion es una lista con cada una de las definiciones separadas
     verificarQueEs = 3
     cadenaError=''
+    errores=[]
     for x in definicion:
         #aca hay que tomar la primera defincion de la lista asi por cada continue que haga
         if verificarQueEs== 3:
@@ -50,27 +51,36 @@ def clasificar_gramatica(cadena):
                 verificarQueEs=0
         if verificarQueEs==0:
             break
+
     if cadenaError is not '':
         noEs=verificarQueEs+1
-        diccionarioFinal[noEs] = '(' + cadenaError + ')' + ' , ' + diccionarioErrores[noEs]
+        listaErrores=guardarErrores(cadena,noEs)
+        for x in listaErrores:
+            v= (x[0], diccionarioErrores[x[1]])
+            diccionarioFinal[noEs].append(v)
     for key in diccionarioFinal:
         print (key,":",diccionarioFinal[key])
-        diccionarioFinal[key]=""
+        diccionarioFinal[key]=[]
+
         #Borra porque si se ejecutan varias pruebas el diccionarioFinal no vuelve a vacio.
     #print(diccionarioFinal)
 
     #Aca en no hay que retornar la lista, tengo que retornar el diccionario.
     #DICCIONARIOOOOOOOOOOOOOOOO
-diccionarioFinal={
-    3:[],
-    2:[],
-    1:[],
-    0:[]}
+diccionarioFinal = {
+    3: [],
+    2: [],
+    1: [],
+    0: []}
+
 diccionarioErrores={
-    3:"No pertenece a G3, no corresponde a ninguna de las formas: NT → Nt, Nt→t, Nt→ Nt t, Nt→ t Nt, NT→ lambda",
-    2:"No pertenece a G2, en la parte izquierda solo debe existir un no terminal",
-    1:"No pertenece a G1, la parte izquierda es mas larga que la derecha\n o lambda esta definido por el distuinguido y el distinguido es recursivo\n o existe lambda y no esta definido por el distinguido",
-    0:"",
+    4:"No pertenece a G3, no corresponde a ninguna de las formas: NT → Nt, Nt→t, Nt→ Nt t, Nt→ t Nt, NT→ lambda",
+    3:"No pertenece a G2, en la parte izquierda solo debe existir un no terminal",
+    2:"No pertenece a G1, la parte izquierda es mas larga que la derecha",
+    1:"Existe lambda y no esta definido por el distinguido",
+    0:"Lambda esta definido por el distuinguido y el distinguido es recursivo",
+    #Hacer lista de errores por cada diccionario. 
+
     }
 
 '''si da que es G2 o G1 bucar la cadena que hace que no sea G3 o G2
@@ -131,7 +141,7 @@ def verificar_G1 (cadena,bool,cadenaInicial):
     if bool:
         verificar=verificarLambdaEnDistinguido(cadenaInicial)
         if verificar[0] is False:
-            return [False,verificar[1]]
+            return [False,verificar[1],verificar[2]]
     lista= separarTerminales(cadena)
     noTerminales= lista[0].split()
     terminales= lista[1].split()
@@ -139,7 +149,8 @@ def verificar_G1 (cadena,bool,cadenaInicial):
      #   if terminales[0]=="lambda":
       #      return False
     if len(noTerminales) > len(terminales):
-        return [False,""]
+        error=2
+        return [False,cadena,error]
     else:
         return [True]
 def verificarLambdaEnDistinguido(cadenaDefinicion):
@@ -155,7 +166,8 @@ def verificarLambdaEnDistinguido(cadenaDefinicion):
                 noTerminales=lista[0]
                 terminales=lista[1]
                 if distinguido in terminales:
-                    return [False,cadenaDefinicionLambda]
+                    error=0
+                    return [False,cadenaDefinicionLambda,error]
                 # Ver si distinguido es recursivo
                 else:
                     continue
@@ -163,33 +175,66 @@ def verificarLambdaEnDistinguido(cadenaDefinicion):
         else:
             indice=cadenaDefinicion.find('lambda')
             cadenaError=cadenaDefinicion[(indice-2):(indice+6)]
-            return [False,cadenaError]
+            error=1
+            return [False,cadenaError,error]
         #ver si el distinguido define 'lambda' y que no sea recursivo
     else:
         return [True]
         #Ver si distinguido es recursivo
         #ver si distinguido define lambda ej: S → lambda
+def guardarErrores(cadena,error):
+    definicion = cadena.splitlines()
+    # Definicion es una lista con cada una de las definiciones separadas
+    verificarQueEs = error
+    cadenaError = ''
+    errores = []
+    paso=1
+    for x in definicion:
+        if verificarQueEs== 3:
+            verificar = verificar_G3(x)
+            codigo=4
+        if verificarQueEs==2:
+            verificar= verificar_G2(x)
+            codigo=3
+        if verificarQueEs==1:
+            if paso==1:
+                verificar= verificar_G1(x,True,cadena)
+                codigo= verificar[2]
+                paso=0
+            else:
+                verificar= verificar_G1(x,False,cadena)
+                codigo=2
+            if verificar[0] is False:
+                x=verificar[1]
+                verificar = False
+
+
+        if verificar is False:
+            listar=(x,codigo)
+            errores.append(listar)
+    return errores
 
 #cadena="A:b A\nA:a\nA:A B c\nA:lambda\nB:b"
 #prueba= verificarLambdaEnDistinguido(cadena)
 #a=prueba
 #pruebaG3= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
-#pruebaG2= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
+#pruebaG2= clasificar_gramatica("A:b A\nA:a B a\nA:A B c\nA:lambda\nB:b") #G2
 #pruebaG1= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
-#pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
-#prueba= clasificar_gramatica("A n:b a\nA:a\nA:B c\nB:b\nA:lambda") #G1 porque tiene lambda y A no es recursiva
+##prueba= clasificar_gramatica("A n:b a\nA:a\nA:B c\nB:b\nA:lambda") #G1 porque tiene lambda y A no es recursiva
 #prueba= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 #prueba= clasificar_gramatica("S:AB palabra\nAB palabra:A palabra \nBC:a B\nC:D")
 #prueba=clasificar_gramatica("S:C b a\nS:C\nS:lambda\nC:B c\nB:C b\nA:B a\nA:A a") #G2
 #prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b:c d") #G0 xq tiene lambda y no lo define distinguido
 #prueba=clasificar_gramatica("S:a B\nS:c\nC:c A\nB:b C\nB:b\nA:a A\nA:a") #G3
+prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b c:c d") #Tiene lamba no lo define el distinguindo, hay mas cosas a izq que derecha
 
+pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA a B C:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
 
 #a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
 #b= clasificar_gramatica("A:b A\nA:a\nA:A B c\nA:lambda\nB:b") #G2
 #c= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
-d= clasificar_gramatica("A n v:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
-e= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
+#d= clasificar_gramatica("A n v:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
+#e= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 
 #EN G1 va a mostrar el error de lambda primero, si no hay error con lambda muesta la cadena que da error.
 #Consultar.
@@ -249,7 +294,7 @@ class AutomataPila:
                     return True
         return False
 
-    pass
+
 
 #estadosPrueba= {'a': [('(', 'Z0', ['(','Z0'], 'a'),
 #                ('(', '(', ['(', '('], 'a'),
@@ -260,7 +305,7 @@ class AutomataPila:
 #estadosAceptacion=['b']
 
 #estadosPrueba= {
- #   1: [('(', 'Z0', ['(','Z0'], 1),
+ #   1: [('(', 'Z0', ,'Z0'], 1),
   #      ('(', '(', ['(', '('], 1),
    #     (')', '(', [''], 2)],
     #2: [(')', '(', [''], 2),
