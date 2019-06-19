@@ -1,12 +1,11 @@
 def clasificar_gramatica(cadena):
     definicion = cadena.splitlines()
-    #Definicion es una lista con cada una de las definiciones separadas
     verificarQueEs = 3
     cadenaError=''
     errores=[]
     indiceError=''
     for x in definicion:
-        #aca hay que tomar la primera defincion de la lista asi por cada continue que haga
+
         if verificarQueEs== 3:
             verificar=verificar_G3(x)
             if verificar:
@@ -30,7 +29,7 @@ def clasificar_gramatica(cadena):
                             cadenaError=verificar[1]
                             indiceError = definicion.index(x)
                             break
-                #Si no es g3, ver que la cadena sea g2 si no es g2 g1 si no es g1 es g0 cortar la iteracion.
+
         if verificarQueEs== 2:
             verificar=verificar_G2(x)
             if verificar:
@@ -68,11 +67,6 @@ def clasificar_gramatica(cadena):
         print (key,":",diccionarioFinal[key])
         diccionarioFinal[key]=[]
 
-        #Borra porque si se ejecutan varias pruebas el diccionarioFinal no vuelve a vacio.
-    #print(diccionarioFinal)
-
-    #Aca en no hay que retornar la lista, tengo que retornar el diccionario.
-    #DICCIONARIOOOOOOOOOOOOOOOO
 diccionarioFinal = {
     3: [],
     2: [],
@@ -83,15 +77,9 @@ diccionarioErrores={
     4:"No pertenece a G3, no corresponde a ninguna de las formas: NT → Nt, Nt→t, Nt→ Nt t, Nt→ t Nt, NT→ lambda",
     3:"No pertenece a G2, en la parte izquierda solo debe existir un no terminal",
     2:"No pertenece a G1, la parte izquierda es mas larga que la derecha",
-    1:"Existe lambda y no esta definido por el distinguido",
-    0:"Lambda esta definido por el distuinguido y el distinguido es recursivo",
-    #Hacer lista de errores por cada diccionario. 
-
+    1:"No pertenece G1, existe lambda y no esta definido por el distinguido",
+    0:"No pertenece G1, lambda esta definido por el distuinguido y el distinguido es recursivo",
     }
-
-'''si da que es G2 o G1 bucar la cadena que hace que no sea G3 o G2
-    osea que si me da algun false guardo esa cadena para mostrar como error.
-'''
 
 def separarTerminales(cadena):
     list=[]
@@ -110,15 +98,14 @@ def separarTerminales(cadena):
         i=i+1
     list.append(terminales)
     return list
-    #Retorna lista el primer elemento son los no terminales, el segundo los terminales.
+
 def verificar_G3(cadena):
-    #devolver true o false dependiendo de lo que da y ademas si da error porque Asique devolver lista.
+
     lista=separarTerminales(cadena)
     noTerminales=lista[0].split()
-    #longitudnoTerminales = len(noTerminales)
     if len(noTerminales) > 1 :
         return False
-    if  noTerminales[0].isupper(): #ver que el unico no terminal comience en mayuscula
+    if  noTerminales[0].isupper():
         terminales= lista[1].split()
         longitudTerminales= len(terminales)
         if longitudTerminales <= 2:
@@ -136,11 +123,11 @@ def verificar_G3(cadena):
 def verificar_G2(cadena):
     lista = separarTerminales(cadena)
     noTerminales = lista[0].split()
-    #longitudnoTerminales = len(noTerminales)
+
     if len(noTerminales) > 1:
         return False
     if (noTerminales[0])[0].isupper():
-        return  True
+        return True
     else:
         return False
 def verificar_G1 (cadena,bool,cadenaInicial):
@@ -151,30 +138,27 @@ def verificar_G1 (cadena,bool,cadenaInicial):
     lista= separarTerminales(cadena)
     noTerminales= lista[0].split()
     terminales= lista[1].split()
-    #if len(terminales)== 1:
-     #   if terminales[0]=="lambda":
-      #      return False
+
     if len(noTerminales) > len(terminales):
         error=2
         return [False,cadena,error]
     else:
         return [True]
 def verificarLambdaEnDistinguido(cadenaDefinicion):
-    #Primero verifico que haya lambda
+
     if 'lambda' in cadenaDefinicion:
         definicion=cadenaDefinicion.splitlines()
         distinguido=definicion[0][0]
-        #Calculé distinguido
+
         cadenaDefinicionLambda=distinguido+':lambda'
         if cadenaDefinicionLambda in cadenaDefinicion:
             for x in definicion:
                 lista= separarTerminales(x)
-                noTerminales=lista[0]
+                #noTerminales=lista[0]
                 terminales=lista[1]
                 if distinguido in terminales:
                     error=0
                     return [False,cadenaDefinicionLambda,error]
-                # Ver si distinguido es recursivo
                 else:
                     continue
             return [True]
@@ -183,23 +167,19 @@ def verificarLambdaEnDistinguido(cadenaDefinicion):
             cadenaError=cadenaDefinicion[(indice-2):(indice+6)]
             error=1
             return [False,cadenaError,error]
-        #ver si el distinguido define 'lambda' y que no sea recursivo
     else:
         return [True]
-        #Ver si distinguido es recursivo
-        #ver si distinguido define lambda ej: S → lambda
+
 def guardarErrores(cadena,error,indiceError):
     definicion = cadena.splitlines()
-    # Definicion es una lista con cada una de las definiciones separadas
     verificarQueEs = error
     cadenaError = ''
     errores = []
     paso=1
     tamañoCadena= len(definicion)-1
     i=indiceError
-    #usa while, porque va desde i que es el index del error donde se encontro
+
     while i <= tamañoCadena:
-    #for x in definicion:
         x=definicion[i]
         if verificarQueEs== 3:
             verificar = verificar_G3(x)
@@ -220,28 +200,24 @@ def guardarErrores(cadena,error,indiceError):
                 x=verificar[1]
                 verificar = False
 
-
         if verificar is False:
             listar=(x,codigo)
             errores.append(listar)
         i=i+1
     return errores
 
-#cadena="A:b A\nA:a\nA:A B c\nA:lambda\nB:b"
-#prueba= verificarLambdaEnDistinguido(cadena)
-#a=prueba
-pruebaG3= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
-pruebaG2= clasificar_gramatica("A:b A\nA:a B a\nA:A B c\nA:lambda\nB:b") #G2
-pruebaG1= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
-pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA a B C:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
+#pruebaG3= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
+#pruebaG2= clasificar_gramatica("A:b A\nA:a B a\nA:A B c\nA:lambda\nB:b") #G2
+#pruebaG1= clasificar_gramatica("A n:b A\nA a:a B\nA:A B c\nB:b") #G1
+#pruebaG0= clasificar_gramatica("A n:b A\nA:a\nA a B C:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
 
-##prueba= clasificar_gramatica("A n:b a\nA:a\nA:B c\nB:b\nA:lambda") #G1 porque tiene lambda y A no es recursiva
+#prueba= clasificar_gramatica("A n:b a\nA:a\nA:B c\nB:b\nA:lambda") #G1 porque tiene lambda y A no es recursiva
 #prueba= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 #prueba= clasificar_gramatica("S:AB palabra\nAB palabra:A palabra \nBC:a B\nC:D")
 #prueba=clasificar_gramatica("S:C b a\nS:C\nS:lambda\nC:B c\nB:C b\nA:B a\nA:A a") #G2
 #prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b:c d") #G0 xq tiene lambda y no lo define distinguido
 #prueba=clasificar_gramatica("S:a B\nS:c\nC:c A\nB:b C\nB:b\nA:a A\nA:a") #G3
-prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b c:c d") #Tiene lamba no lo define el distinguindo, hay mas cosas a izq que derecha
+#prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b c:c d") #Tiene lamba no lo define el distinguindo, hay mas cosas a izq que derecha
 
 
 #a= clasificar_gramatica("A:B a\nA:a\nA:A c\nA:lambda\nB:b") #G3
@@ -250,8 +226,6 @@ prueba=clasificar_gramatica("S:A B C\nA:A\nA:a B\nG:lambda\nC:a b C\nA b c:c d")
 #d= clasificar_gramatica("A n v:b A\nA:a\nA:A B c\nB:b\nA:lambda") #G0 porque tiene lambda y A es recursiva
 #e= clasificar_gramatica("A n c:b A\nA:a\nA n B c:A B c\nB:b") #G0 hay mas cosas del lado izquiero
 
-#EN G1 va a mostrar el error de lambda primero, si no hay error con lambda muesta la cadena que da error.
-#Consultar.
 
 class AutomataPila:
 
@@ -330,16 +304,16 @@ class AutomataPila:
 #}
 #estadosAceptacion=[2]
 
-estadosPrueba= {
-    1: [('a', 'Z0', ['a','a','a','Z0'], 1),
-        ('a', 'a', ['a', 'a','a'], 1),
-        ('b', 'a', ['a'], 2),
-        ('b','Z0',['a','Z0'],2)],
-    2: [('c', 'a', [''], 2),
-        ('$', 'Z0', ['Z0'], 2)
-       ]
-}
-estadosAceptacion=[2]
+#estadosPrueba= {
+#    1: [('a', 'Z0', ['a','a','a','Z0'], 1),
+#        ('a', 'a', ['a', 'a','a'], 1),
+#        ('b', 'a', ['a'], 2),
+#        ('b','Z0',['a','Z0'],2)],
+#    2: [('c', 'a', [''], 2),
+#        ('$', 'Z0', ['Z0'], 2)
+#       ]
+#}
+#estadosAceptacion=[2]
 
-prueba= AutomataPila(estadosPrueba,estadosAceptacion).validar_cadena('bc$')
-print(prueba)
+#prueba= AutomataPila(estadosPrueba,estadosAceptacion).validar_cadena('bc$')
+#print(prueba)
